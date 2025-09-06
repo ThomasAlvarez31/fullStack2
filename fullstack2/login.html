@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Login - MiTienda</title>
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <header>
+    <nav class="nav">
+      <a href="/index.html" class="logo">MiTienda</a>
+      <ul class="nav-links">
+        <li><a href="/registro.html">Registro</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <main class="container">
+    <h2>Inicio de Sesión</h2>
+    <form id="form-login">
+      <label>
+        Correo
+        <input id="correo" type="email" name="correo" required>
+      </label>
+      <label>
+        Contraseña
+        <input id="clave" type="password" name="clave" required>
+      </label>
+      <div class="errores"></div>
+      <button type="submit">Ingresar</button>
+    </form>
+  </main>
+
+  <footer><p>© 2025 MiTienda</p></footer>
+  <script src="/js/app.js"></script>
+</body>
+</html>

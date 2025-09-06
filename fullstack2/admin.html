@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Panel Administrador - MiTienda</title>
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <header>
+    <h2>Panel Administrador</h2>
+  </header>
+
+  <aside class="nav" style="flex-direction:column;align-items:flex-start;gap:8px;">
+    <a href="admin.html">Home</a>
+    <a href="admin-productos.html">Productos</a>
+    <a href="admin-usuarios.html">Usuarios</a>
+    <button id="logout">Cerrar sesión</button>
+  </aside>
+
+  <main class="container">
+    <p>Bienvenido Administrador. Aquí puedes gestionar los productos y usuarios de la tienda.</p>
+  </main>
+
+  <footer>
+    <p>© 2025 MiTienda</p>
+  </footer>
+
+  <script>
+    // Verificar si el rol es admin
+    document.addEventListener('DOMContentLoaded', () => {
+      const rol = localStorage.getItem("rol");
+      if (rol !== "admin") {
+        alert("Acceso denegado ❌ Solo administradores");
+        window.location.href = "login.html";
+      }
+    });
+
+    // Botón de logout
+    document.addEventListener('DOMContentLoaded', () => {
+      const logoutBtn = document.getElementById("logout");
+      if (logoutBtn) {
+        logoutBtn.addEventListener("click", () => {
+          localStorage.removeItem("rol");
+          window.location.href = "index.html";
+        });
+      }
+    });
+  </script>
+</body>
+</html>
