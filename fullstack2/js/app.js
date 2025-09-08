@@ -2,9 +2,9 @@
 console.log('MiTienda cargado');
 
 const productosMock = [
-  {id:1,title:'Camiseta',price:9990,desc:'Camiseta 100% algodón',img:'assets/images/placeholder.png'},
-  {id:2,title:'Taza',price:4990,desc:'Taza cerámica 300ml',img:'assets/images/placeholder.png'},
-  {id:3,title:'Mug termo',price:12990,desc:'Mug para bebidas',img:'assets/images/placeholder.png'}
+  {id:1,title:'Camiseta',price:9990,desc:'Camiseta 100% algodón',img:'/assets/img/pngtree-classic-white-t-shirt-perfect-for-custom-printing-with-a-blank-png-image_13485404.png'},
+  {id:2,title:'Taza',price:4990,desc:'Taza cerámica 300ml',img:'/assets/img/taza-grande.png'},
+  {id:3,title:'Mug termo',price:12990,desc:'Mug para bebidas',img:'/assets/img/pixelcut-export_-_2024-02-01T171258.51020240201-4752-4lxpn0_5f4501f6-15da-434e-ad2a-0e5c761e332e_1800x.webp'}
 ];
 
 // Render catálogo
@@ -110,6 +110,7 @@ document.addEventListener('click', (e)=>{
 document.addEventListener('DOMContentLoaded', ()=>{
   renderCatalogo();
   renderCart();
+  renderProducto();
   const form = document.getElementById('form-contacto');
   if(form) form.addEventListener('submit', validarContacto);
 });
@@ -217,3 +218,24 @@ document.addEventListener('DOMContentLoaded', () => {
     window.location.href = "login.html";
   }
 })
+// Render detalle de producto
+function renderProducto() {
+  const detalle = document.getElementById('detalle-producto');
+  if (!detalle) return; // si no estamos en producto.html, no hace nada
+
+  const url = new URL(window.location.href);
+  const id = Number(url.searchParams.get('id'));
+  const p = productosMock.find(x => x.id === id);
+
+  if (!p) {
+    detalle.innerHTML = "<p>Producto no encontrado</p>";
+    return;
+  }
+
+  // Rellenar datos en la página
+  document.getElementById('p-title').textContent = p.title;
+  document.getElementById('p-img').src = p.img;
+  document.getElementById('p-img').alt = p.title;
+  document.getElementById('p-desc').textContent = p.desc;
+  document.getElementById('p-price').textContent = "$" + p.price;
+}
