@@ -128,3 +128,23 @@ input {
 #cart-items {
   margin-top: 12px;
 }
+.logo-container {
+  display: flex;
+  justify-content: space-between; /* izquierda y derecha */
+  align-items: center;
+  padding: 12px;
+  background: var(--dark);
+  color: white;
+}
+
+.logo-left {
+  display: flex;
+  align-items: center;
+  gap: 8px; /* separación entre icono y texto */
+}
+
+.logo-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+}
