@@ -130,7 +130,7 @@ input {
 }
 .logo-container {
   display: flex;
-  justify-content: space-between; /* izquierda y derecha */
+  justify-content: space-between;
   align-items: center;
   padding: 12px;
   background: var(--dark);
@@ -140,11 +140,23 @@ input {
 .logo-left {
   display: flex;
   align-items: center;
-  gap: 8px; /* separación entre icono y texto */
+  gap: 8px;
 }
 
 .logo-icon {
   width: 40px;
   height: 40px;
   border-radius: 50%;
+}
+.payment-method {
+  display: flex;
+  flex-direction: column;
+  align-items: left;
+  gap: 10px;
+  margin: 15px 0;
+}
+
+.payment-method label {
+  font-size: 16px;
+  cursor: pointer;
 }

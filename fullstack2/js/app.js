@@ -2,9 +2,9 @@
 console.log('MiTienda cargado');
 
 const productosMock = [
-  {id:1,title:'Camiseta',price:9990,desc:'Camiseta 100% algodón',img:'/assets/img/pngtree-classic-white-t-shirt-perfect-for-custom-printing-with-a-blank-png-image_13485404.png'},
-  {id:2,title:'Taza',price:4990,desc:'Taza cerámica 300ml',img:'/assets/img/taza-grande.png'},
-  {id:3,title:'Mug termo',price:12990,desc:'Mug para bebidas',img:'/assets/img/pixelcut-export_-_2024-02-01T171258.51020240201-4752-4lxpn0_5f4501f6-15da-434e-ad2a-0e5c761e332e_1800x.webp'}
+  {id:1,title:'Camiseta',price:9990,desc:'Camiseta 100% algodón',img:'assets/img/pngtree-classic-white-t-shirt-perfect-for-custom-printing-with-a-blank-png-image_13485404.png'},
+  {id:2,title:'Taza',price:4990,desc:'Taza cerámica 300ml',img:'assets/img/taza-grande.png'},
+  {id:3,title:'Mug termo',price:12990,desc:'Mug para bebidas',img:'assets/img/pixelcut-export_-_2024-02-01T171258.51020240201-4752-4lxpn0_5f4501f6-15da-434e-ad2a-0e5c761e332e_1800x.webp'}
 ];
 
 // Render catálogo
@@ -148,6 +148,8 @@ function validarRegistro(e) {
   const apellidos = e.target.querySelector('#apellidos').value.trim();
   const correo = e.target.querySelector('#correo').value.trim();
   const direccion = e.target.querySelector('#direccion').value.trim();
+  const clave = e.target.querySelector('#clave').value.trim();
+  const clave2 = e.target.querySelector('#clave2').value.trim();
 
   let errores = [];
 
@@ -173,6 +175,15 @@ function validarRegistro(e) {
   if (errores.length === 0) {
     alert("Registro válido ✅");
     e.target.reset();
+  }
+  // verificacion de contraseña
+  if (clave !== clave2) {
+    errores.push("Las contraseñas no coinciden");
+  }
+  mostrarErroresRegistro(e.target, errores);
+    if (errores.length === 0) {
+      alert("Registro válido ✅");
+      e.target.reset();
   }
 }
 
