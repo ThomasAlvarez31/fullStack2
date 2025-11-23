@@ -9,8 +9,8 @@ export default function Nosotros(){
       <h3>Equipo</h3>
       <div className="row">
         <div className="col-md-4 card p-3">Anton Knittel<br/><small>Frontend</small></div>
-        <div className="col-md-4 card p-3">Tomás Martínez<br/><small>DevOps</small></div>
-        <div className="col-md-4 card p-3">Juan Camela<br/><small>UX/UI</small></div>
+        <div className="col-md-4 card p-3">Thomás <Alvarez></Alvarez><br/><small>DevOps</small></div>
+        <div className="col-md-4 card p-3">Eduardo Cota<br/><small>UX/UI</small></div>
       </div>
     </div>
   );

@@ -8,7 +8,7 @@ export default function Producto() {
   const [addedMessage, setAddedMessage] = useState('');
 
   useEffect(() => {
-    fetch(`http://localhost:3000/api/products/${id}`)
+    fetch(`http://localhost:4000/api/products/${id}`)
       .then(res => {
         if (!res.ok) throw new Error('No encontrado');
         return res.json();
@@ -18,21 +18,21 @@ export default function Producto() {
   }, [id]);
 
   function addToCart() {
-    fetch('http://localhost:3000/api/cart')
+    fetch('http://localhost:4000/api/cart')
       .then(res => res.json())
       .then(cart => {
         const item = cart.find(i => i.id === Number(id));
         if (item) item.qty += cantidad;
         else cart.push({ id: Number(id), qty: cantidad });
 
-        fetch('http://localhost:3000/api/cart', {
+        fetch('http://localhost:4000/api/cart', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(cart)
         });
 
         setAddedMessage(`¡Se agregaron ${cantidad} unidad(es) de ${p.name}!`);
-        setTimeout(() => setAddedMessage(''), 3000);
+        setTimeout(() => setAddedMessage(''), 4000);
       });
   }
 

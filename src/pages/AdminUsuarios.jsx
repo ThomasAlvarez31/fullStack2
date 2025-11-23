@@ -9,7 +9,7 @@ export default function AdminUsuarios() {
 
   const fetchUsers = async () => {
     try {
-      const res = await fetch('http://localhost:3000/api/users');
+      const res = await fetch('http://localhost:4000/api/users');
       const data = await res.json();
       setUsers(data);
     } catch (error) {
@@ -21,7 +21,7 @@ export default function AdminUsuarios() {
     if (!confirm('¿Estás seguro de eliminar a este usuario?')) return;
     
     try {
-      await fetch(`http://localhost:3000/api/users/${id}`, { method: 'DELETE' });
+      await fetch(`http://localhost:4000/api/users/${id}`, { method: 'DELETE' });
       fetchUsers();
     } catch (error) {
       alert('Error al eliminar');

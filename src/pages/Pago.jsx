@@ -27,8 +27,8 @@ export default function Pago() {
 
   useEffect(() => {
     Promise.all([
-      fetch('http://localhost:3000/api/cart').then(res => res.json()),
-      fetch('http://localhost:3000/api/products').then(res => res.json())
+      fetch('http://localhost:4000/api/cart').then(res => res.json()),
+      fetch('http://localhost:4000/api/products').then(res => res.json())
     ]).then(([cartData, productsData]) => {
       setCart(cartData);
       const t = cartData.reduce((sum, item) => {
@@ -118,7 +118,7 @@ export default function Pago() {
     }
 
     try {
-      const response = await fetch('http://localhost:3000/api/orders', {
+      const response = await fetch('http://localhost:4000/api/orders', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

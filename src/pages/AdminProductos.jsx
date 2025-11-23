@@ -11,7 +11,7 @@ export default function AdminProductos() {
 
   const fetchProducts = async () => {
     try {
-      const res = await fetch('http://localhost:3000/api/products');
+      const res = await fetch('http://localhost:4000/api/products');
       const data = await res.json();
       setProducts(data);
     } catch (error) {
@@ -31,14 +31,14 @@ export default function AdminProductos() {
 
     try {
       if (editingId) {
-        await fetch(`http://localhost:3000/api/products/${editingId}`, {
+        await fetch(`http://localhost:4000/api/products/${editingId}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(productData)
         });
         alert('Producto actualizado correctamente');
       } else {
-        await fetch('http://localhost:3000/api/products', {
+        await fetch('http://localhost:4000/api/products', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(productData)
@@ -74,7 +74,7 @@ export default function AdminProductos() {
 
   const handleDelete = async (id) => {
     if (!confirm('¿Seguro que deseas eliminar este producto?')) return;
-    await fetch(`http://localhost:3000/api/products/${id}`, { method: 'DELETE' });
+    await fetch(`http://localhost:4000/api/products/${id}`, { method: 'DELETE' });
     fetchProducts();
   };
 

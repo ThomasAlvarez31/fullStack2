@@ -12,11 +12,11 @@ export default function AdminHome() {
 
     const fetchData = async () => {
       try {
-        const resProd = await fetch('http://localhost:3000/api/products');
+        const resProd = await fetch('http://localhost:4000/api/products');
         const prodData = await resProd.json();
-        const resUser = await fetch('http://localhost:3000/api/users');
+        const resUser = await fetch('http://localhost:4000/api/users');
         const userData = await resUser.json();
-        const resOrders = await fetch('http://localhost:3000/api/orders');
+        const resOrders = await fetch('http://localhost:4000/api/orders');
         const ordersData = await resOrders.json();
         const totalDinero = ordersData.reduce((acumulador, orden) => {
           return acumulador + (orden.total || 0);

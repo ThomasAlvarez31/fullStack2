@@ -7,7 +7,7 @@ export default function Catalogo(){
   const [errorMessage, setErrorMessage] = useState('');
 
   useEffect(() => {
-    fetch('http://localhost:3000/api/products')
+    fetch('http://localhost:4000/api/products')
       .then(res => res.json())
       .then(data => setProductos(data))
       .catch(error => console.error("Error cargando productos:", error));
@@ -17,7 +17,7 @@ export default function Catalogo(){
     const productoReal = productos.find(p => p.id === id);
     if (!productoReal) return;
 
-    fetch('http://localhost:3000/api/cart')
+    fetch('http://localhost:4000/api/cart')
       .then(res => res.json())
       .then(cart => {
         const item = cart.find(i => i.id === id);
@@ -25,7 +25,7 @@ export default function Catalogo(){
 
         if (cantidadActualEnCarrito + cantidad > productoReal.stock) {
           setErrorMessage(`¡No puedes añadir más! Stock máximo: ${productoReal.stock}`);
-          setTimeout(() => setErrorMessage(''), 3000);
+          setTimeout(() => setErrorMessage(''), 4000);
           return;
         }
 
@@ -35,14 +35,14 @@ export default function Catalogo(){
           cart.push({id, qty: cantidad});
         }
 
-        fetch('http://localhost:3000/api/cart', {
+        fetch('http://localhost:4000/api/cart', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(cart)
         });
         
         setAddedMessage(`Se añadieron ${cantidad} unidad(es) de "${productoReal.name}"`);
-        setTimeout(() => setAddedMessage(''), 3000);
+        setTimeout(() => setAddedMessage(''), 4000);
       });
   }
 

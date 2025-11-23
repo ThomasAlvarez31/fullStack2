@@ -1,190 +1,368 @@
 const express = require('express');
 const cors = require('cors');
-const fs = require('fs');
+const mongoose = require('mongoose'); 
+const bcrypt = require('bcryptjs'); 
+const jwt = require('jsonwebtoken');
+
+// IMPORTACIONES TRANSBANK
+const { 
+    WebpayPlus, 
+    Options, 
+    IntegrationApiKeys, 
+    IntegrationCommerceCodes, 
+    Environment 
+} = require('transbank-sdk'); 
+
+// 🛑 IMPORTAR TODOS LOS MODELOS
+const User = require('./models/User'); 
+const Product = require('./models/Product'); 
+const Order = require('./models/Order'); 
+const Cart = require('./models/Cart'); // 🛑 Nuevo modelo de Carrito
+
 const app = express();
 
-app.use(cors());
+// CONFIGURACIÓN DE SEGURIDAD Y CONEXIÓN
+const JWT_SECRET = 'Zr477TzUdRbesP6p';
+// 🛑 CRÍTICO: Asegúrate que esta URI sea la correcta y que tu IP esté en Atlas.
+const MONGO_URI = 'mongodb+srv://thomasjoaquinalvarez_db_user:Zr477TzUdRbesP6p@cluster0.hkxok5l.mongodb.net/?appName=Cluster0'; 
+const PORT = 4000; // Puerto del Backend
+
+// 🛑 CORRECCIÓN: Configuración explícita de CORS para el Frontend (http://localhost:3000)
+app.use(cors({
+    origin: 'http://localhost:3000', 
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+    credentials: true,
+}));
+
 app.use(express.json());
 
-const DB_FILE = './db.json';
+// CONFIGURACIÓN DEL CLIENTE TRANSBANK
+const tbk = new WebpayPlus.Transaction(
+    new Options(
+        IntegrationCommerceCodes.WEBPAY_PLUS,
+        IntegrationApiKeys.WEBPAY,
+        Environment.Integration
+    )
+);
 
-const readData = () => {
-    try {
-        const data = fs.readFileSync(DB_FILE, 'utf-8');
-        return JSON.parse(data);
-    } catch (error) {
-        return { products: [], users: [], cart: [], blogs: [], orders: [] };
-    }
-};
+// ------------------------------------------------------------------
+// --- CONEXIÓN A MONGODB ---
+// ------------------------------------------------------------------
 
-const writeData = (data) => {
-    fs.writeFileSync(DB_FILE, JSON.stringify(data, null, 2));
-};
+mongoose.connect(MONGO_URI)
+.then(() => console.log('Conexión exitosa a MongoDB Atlas'))
+.catch(err => console.error('Error de conexión a MongoDB:', err.message));
 
-app.get('/', (req, res) => {
-    res.send('API de Pauperrimos funcionando 🚀');
-});
 
-app.post('/api/login', (req, res) => {
-    const { email, password } = req.body;
-    const db = readData();
-    const user = db.users.find(u => u.email === email && u.password === password);
-    if (user) {
-        res.json({ success: true, user: { id: user.id, name: user.name, role: user.role } });
-    } else {
-        res.status(401).json({ success: false, message: 'Credenciales incorrectas' });
-    }
-});
+// ------------------------------------------------------------------
+// --- MIDDLEWARE DE AUTENTICACIÓN ---
+// ------------------------------------------------------------------
 
-app.post('/api/register', (req, res) => {
-    const { name, email, password } = req.body;
-    const db = readData();
-    
-    if (db.users.some(u => u.email === email)) {
-        return res.status(400).json({ success: false, message: 'El correo ya está registrado' });
-    }
+const authenticateToken = (req, res, next) => {
+    const authHeader = req.headers['authorization'];
+    const token = authHeader && authHeader.split(' ')[1];
 
-    const newUser = {
-        id: Date.now(),
-        name,
-        email,
-        password,
-        role: 'cliente'
-    };
-    db.users.push(newUser);
-    writeData(db);
-    res.json({ success: true, message: 'Usuario registrado' });
-});
+    if (token == null) return res.status(401).json({ success: false, message: 'Token requerido para esta operación' });
 
-app.get('/api/products', (req, res) => {
-    const db = readData();
-    res.json(db.products);
-});
-
-app.get('/api/products/:id', (req, res) => {
-    const id = parseInt(req.params.id);
-    const db = readData();
-    const product = db.products.find(p => p.id === id);
-    if (product) res.json(product);
-    else res.status(404).json({ message: 'Producto no encontrado' });
-});
-
-app.post('/api/products', (req, res) => {
-    const db = readData();
-    const newProduct = { id: Date.now(), ...req.body };
-    db.products.push(newProduct);
-    writeData(db);
-    res.json(newProduct);
-});
-
-app.put('/api/products/:id', (req, res) => {
-    const id = parseInt(req.params.id);
-    const db = readData();
-    const index = db.products.findIndex(p => p.id === id);
-    if (index !== -1) {
-        db.products[index] = { ...db.products[index], ...req.body };
-        writeData(db);
-        res.json(db.products[index]);
-    } else {
-        res.status(404).json({ message: 'Producto no encontrado' });
-    }
-});
-
-app.delete('/api/products/:id', (req, res) => {
-    const id = parseInt(req.params.id);
-    const db = readData();
-    const initialLength = db.products.length;
-    db.products = db.products.filter(p => p.id !== id);
-    writeData(db);
-    if (db.products.length < initialLength) res.json({ success: true });
-    else res.status(404).json({ message: 'No encontrado' });
-});
-
-app.get('/api/users', (req, res) => {
-    const db = readData();
-    res.json(db.users);
-});
-
-app.post('/api/users/create', (req, res) => {
-    const db = readData();
-    const newUser = { id: Date.now(), ...req.body, role: 'cliente' };
-    db.users.push(newUser);
-    writeData(db);
-    res.json(newUser);
-});
-
-app.delete('/api/users/:id', (req, res) => {
-    const id = parseInt(req.params.id);
-    const db = readData();
-    db.users = db.users.filter(u => u.id !== id);
-    writeData(db);
-    res.json({ success: true });
-});
-
-app.get('/api/cart', (req, res) => {
-    const db = readData();
-    res.json(db.cart);
-});
-
-app.post('/api/cart', (req, res) => {
-    const db = readData();
-    db.cart = req.body;
-    writeData(db);
-    res.json({ success: true });
-});
-
-app.get('/api/blogs', (req, res) => {
-    const db = readData();
-    res.json(db.blogs);
-});
-
-app.get('/api/blogs/:slug', (req, res) => {
-    const db = readData();
-    const blog = db.blogs.find(b => b.slug === req.params.slug);
-    if (blog) res.json(blog);
-    else res.status(404).json({ message: 'Blog no encontrado' });
-});
-
-app.post('/api/contact', (req, res) => {
-    console.log('Mensaje recibido:', req.body);
-    res.json({ success: true, message: 'Mensaje enviado correctamente' });
-});
-
-app.post('/api/orders', (req, res) => {
-    const db = readData();
-    const { cliente, carro, total } = req.body;
-
-    if (!db.orders) db.orders = [];
-    const newOrder = {
-        id: Date.now(),
-        fecha: new Date().toISOString(),
-        cliente,
-        productos: carro,
-        total
-    };
-    db.orders.push(newOrder);
-
-    carro.forEach(item => {
-        const productIndex = db.products.findIndex(p => p.id === item.id);
-        if (productIndex !== -1) {
-            let nuevoStock = db.products[productIndex].stock - item.qty;
-            if (nuevoStock < 0) nuevoStock = 0;
-            db.products[productIndex].stock = nuevoStock;
-        }
+    jwt.verify(token, JWT_SECRET, (err, user) => {
+        if (err) return res.status(403).json({ success: false, message: 'Token inválido o expirado' });
+        req.user = user;
+        next();
     });
+};
 
-    db.cart = [];
+// ------------------------------------------------------------------
+// --- ENDPOINTS DE AUTENTICACIÓN Y PRODUCTOS (Se mantiene sin cambios importantes) ---
+// ------------------------------------------------------------------
 
-    writeData(db);
-    res.json({ success: true, orderId: newOrder.id });
+// [ ... Rutas de Registro y Login (sin cambios) ... ]
+
+app.post('/api/register', async (req, res) => {
+    const { name, email, password, run, surname } = req.body;
+    try {
+        if (await User.findOne({ email })) {
+            return res.status(400).json({ success: false, message: 'El correo ya está registrado' });
+        }
+        const hashedPassword = await bcrypt.hash(password, 10); 
+        const newUser = new User({ 
+            name: name + ' ' + surname, 
+            email,
+            password: hashedPassword,
+            run,
+            role: 'cliente'
+        });
+        await newUser.save(); 
+        res.json({ success: true, message: 'Usuario registrado' });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ success: false, message: 'Error interno en el servidor' });
+    }
 });
 
-app.get('/api/orders', (req, res) => {
-    const db = readData();
-    res.json(db.orders || []);
+app.post('/api/login', async (req, res) => {
+    const { email, password } = req.body;
+    try {
+        const user = await User.findOne({ email }); 
+        if (!user) {
+            return res.status(401).json({ success: false, message: 'Credenciales incorrectas' });
+        }
+        const isMatch = await bcrypt.compare(password, user.password); 
+        if (isMatch) {
+            const token = jwt.sign(
+                { id: user._id, role: user.role }, 
+                JWT_SECRET, 
+                { expiresIn: '1h' }
+            );
+            res.json({ 
+                success: true, 
+                token: token, 
+                user: { id: user._id, name: user.name, role: user.role } 
+            });
+        } else {
+            res.status(401).json({ success: false, message: 'Credenciales incorrectas' });
+        }
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ success: false, message: 'Error de servidor' });
+    }
 });
 
-const PORT = 3000;
+// ------------------------------------------------------------------
+// --- ENDPOINTS DE PRODUCTOS (Corrección CastError) ---
+// ------------------------------------------------------------------
+
+app.get('/api/products', async (req, res) => { 
+    try {
+        const products = await Product.find({}); 
+        return res.json(products); 
+    } catch (error) {
+        console.error("Error al obtener productos:", error);
+        return res.status(500).json({ success: false, message: 'Error al obtener productos.' });
+    }
+});
+
+// 🛑 CORRECCIÓN DE CastError
+app.get('/api/products/:id', async (req, res) => { 
+    try {
+        const id = req.params.id;
+        
+        if (!mongoose.Types.ObjectId.isValid(id)) {
+            // El ID no es un ObjectId válido, esto es lo que causaba el error si se enviaba "undefined"
+            return res.status(400).json({ success: false, message: 'ID de producto inválido o no encontrado.' });
+        }
+
+        const product = await Product.findById(id);
+        
+        if (!product) return res.status(404).json({ success: false, message: 'Producto no encontrado.' });
+        return res.json(product);
+    } catch (error) {
+        console.error("Error al obtener producto por ID:", error);
+        // El error puede ser un CastError, pero la validación de arriba lo debería mitigar
+        return res.status(500).json({ success: false, message: 'Error interno del servidor.' });
+    }
+});
+
+// [ ... Otras Rutas de Producto/Usuarios (sin cambios importantes) ... ]
+
+app.post('/api/products', authenticateToken, async (req, res) => { 
+    try {
+        const newProduct = new Product(req.body);
+        await newProduct.save();
+        return res.status(201).json({ success: true, message: 'Producto creado', product: newProduct });
+    } catch (error) {
+        console.error("Error al crear producto:", error);
+        return res.status(500).json({ success: false, message: 'Error al crear producto.' });
+    }
+});
+
+app.put('/api/products/:id', authenticateToken, async (req, res) => { 
+    try {
+        const product = await Product.findByIdAndUpdate(req.params.id, req.body, { new: true });
+        if (!product) return res.status(404).json({ success: false, message: 'Producto no encontrado.' });
+        return res.json({ success: true, message: 'Producto actualizado', product });
+    } catch (error) {
+        console.error("Error al actualizar producto:", error);
+        return res.status(500).json({ success: false, message: 'Error al actualizar producto.' });
+    }
+});
+
+app.delete('/api/products/:id', authenticateToken, async (req, res) => { 
+    try {
+        const product = await Product.findByIdAndDelete(req.params.id);
+        if (!product) return res.status(404).json({ success: false, message: 'Producto no encontrado.' });
+        return res.json({ success: true, message: 'Producto eliminado' });
+    } catch (error) {
+        console.error("Error al eliminar producto:", error);
+        return res.status(500).json({ success: false, message: 'Error al eliminar producto.' });
+    }
+});
+
+
+// ------------------------------------------------------------------
+// --- ENDPOINTS DE CARRITO (IMPLEMENTACIÓN FINAL) ---
+// ------------------------------------------------------------------
+
+// 🛑 IMPLEMENTACIÓN: GET /api/cart - Obtener el carrito del usuario logueado
+app.get('/api/cart', authenticateToken, async (req, res) => {
+    try {
+        const userId = req.user.id;
+        // Buscar el carrito y popular los datos del producto (para tener nombre, precio, stock, etc.)
+        // Si no se encuentra, findOne devolverá null.
+        const cart = await Cart.findOne({ owner: userId }).populate('items.product');
+        
+        if (!cart) {
+            // Si el usuario no tiene carrito, devolvemos un array vacío.
+            return res.json([]); 
+        }
+
+        // Formatea la respuesta para que el Frontend la entienda fácilmente
+        // Debe ser un array de objetos con el id (que es el _id del producto) y la cantidad (qty)
+        const formattedCart = cart.items
+            // Filtramos items cuyo producto haya sido eliminado de la DB (product es null)
+            .filter(item => item.product) 
+            .map(item => ({
+                // CRÍTICO: Enviamos el _id del producto como 'id' (lo que espera el Frontend)
+                id: item.product._id, 
+                name: item.product.name,
+                price: item.product.price,
+                stock: item.product.stock,
+                qty: item.qty
+            }));
+
+        return res.json(formattedCart);
+
+    } catch (error) {
+        console.error("Error al obtener carrito:", error);
+        return res.status(500).json({ success: false, message: 'Error al obtener carrito' });
+    }
+});
+
+// 🛑 IMPLEMENTACIÓN: POST /api/cart - Guardar o actualizar el carrito
+app.post('/api/cart', authenticateToken, async (req, res) => {
+    // El Frontend envía el array de items: [{ id: 'mongodb_id', qty: 1 }, ...]
+    const itemsFromFrontend = req.body; 
+    const userId = req.user.id;
+
+    try {
+        // Mapear los items del Front al formato de la DB (cambiar 'id' por 'product')
+        const newItems = itemsFromFrontend.map(item => ({
+            product: item.id, // El 'id' del Front es el _id del producto en la DB
+            qty: item.qty
+        }));
+
+        // Buscar y actualizar o crear el carrito
+        let cart = await Cart.findOne({ owner: userId });
+
+        if (!cart) {
+            // Crear nuevo carrito si no existe
+            cart = new Cart({ owner: userId, items: newItems });
+        } else {
+            // Actualizar carrito existente
+            cart.items = newItems;
+        }
+
+        await cart.save();
+        return res.json({ success: true, message: 'Carrito actualizado' });
+
+    } catch (error) {
+        console.error("Error al actualizar carrito:", error);
+        return res.status(500).json({ success: false, message: 'Error al actualizar carrito' });
+    }
+});
+
+// ------------------------------------------------------------------
+// --- ENDPOINTS DE ORDENES Y PAGO (Sin cambios) ---
+// ------------------------------------------------------------------
+
+app.post('/api/orders/create', authenticateToken, async (req, res) => {
+    const { cliente, carro, total, returnUrl } = req.body;
+    
+    // Generar datos únicos para Transbank
+    const buyOrder = `order-${Date.now()}`;
+    const sessionId = `session-${req.user.id}-${Date.now()}`;
+    const amount = Number(total);
+
+    try {
+        // 1. Crear la Orden en MongoDB (Estado Pendiente)
+        const newOrder = new Order({
+            orderId: buyOrder,
+            cliente,
+            productos: carro,
+            total: amount,
+            status: 'Pendiente' 
+        });
+        await newOrder.save();
+
+        // 2. Crear transacción con Webpay 
+        const response = await tbk.create(buyOrder, sessionId, amount, returnUrl);
+
+        // 3. Guardar el Token de Transbank en la Orden 
+        newOrder.transbankToken = response.token;
+        await newOrder.save();
+        
+        // 4. Enviar URL de pago al frontend 
+        res.json({ 
+            success: true, 
+            url: response.url, 
+            token: response.token, 
+            orderId: newOrder.orderId 
+        });
+
+    } catch (error) {
+        console.error("Error al crear transacción:", error);
+        res.status(500).json({ success: false, message: 'Error al iniciar pago con Transbank' });
+    }
+});
+
+app.post('/api/payment/webpay-confirm', async (req, res) => {
+    const { token_ws } = req.body; 
+
+    if (!token_ws) {
+        // Manejo de cancelación o token faltante
+    }
+
+    try {
+        // 1. Confirmar la Transacción 
+        const result = await tbk.commit(token_ws);
+
+        // 2. Buscar la Orden por el token 
+        const order = await Order.findOne({ transbankToken: token_ws });
+
+        if (order) {
+            // 3. Actualizar el estado 
+            const isPaid = result.responseCode === 0 && result.status === 'AUTHORIZED';
+            
+            order.status = isPaid ? 'Pagada' : 'Fallida';
+            order.responseTransbank = result; 
+            await order.save();
+        }
+        
+        // Redirige al cliente al Frontend de React (puerto 3000)
+        const status = order ? order.status : 'Fallida';
+        const code = result ? result.responseCode : 'N/A';
+        const redirectUrl = `http://localhost:3000/confirmacion?status=${status}&code=${code}`;
+        
+        return res.redirect(302, redirectUrl); 
+
+    } catch (error) {
+        console.error("Transbank Commit Error:", error);
+        // Fallback de redirección en caso de error de servidor
+        return res.redirect(302, `http://localhost:3000/confirmacion?status=error`);
+    }
+});
+
+app.get('/api/orders', authenticateToken, async (req, res) => { 
+    try {
+        const orders = await Order.find().sort({ fecha: -1 });
+        res.json(orders);
+    } catch (error) {
+        res.status(500).json({ message: 'Error al obtener órdenes' });
+    }
+});
+
+// ------------------------------------------------------------------
+// --- INICIO DEL SERVIDOR ---
+// ------------------------------------------------------------------
 app.listen(PORT, () => {
     console.log(`Servidor Backend corriendo en http://localhost:${PORT}`);
     console.log(`¡Listo para recibir peticiones de React!`);

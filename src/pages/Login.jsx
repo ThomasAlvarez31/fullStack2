@@ -12,7 +12,7 @@ export default function Login() {
     setError('');
 
     try {
-      const response = await fetch('http://localhost:3000/api/login', {
+      const response = await fetch('http://localhost:4000/api/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password })
@@ -20,7 +20,9 @@ export default function Login() {
 
       const data = await response.json();
 
-      if (data.success) {
+      if (data.success && data.token) { // 🛑 Busca 'data.token' además de 'data.success'
+        // 🛑 Guardar el TOKEN para futuras peticiones
+        localStorage.setItem('authToken', data.token); 
         localStorage.setItem('user', JSON.stringify(data.user));
         localStorage.setItem('rol', data.user.role);
         
@@ -33,7 +35,6 @@ export default function Login() {
       setError('Error: No se puede conectar con el servidor (Backend caído)');
     }
   };
-
   return (
     <div className="container d-flex justify-content-center align-items-center" style={{ minHeight: '60vh' }}>
       <div className="card p-4 shadow-sm" style={{ maxWidth: '400px', width: '100%' }}>

@@ -6,7 +6,7 @@
       "price": 49990,
       "desc": "Sonido 360 de alta fidelidad",
       "img": "/assets/X1.jpeg",
-      "stock": 49
+      "stock": 43
     },
     {
       "id": 2,
@@ -88,6 +88,31 @@
         }
       ],
       "total": 49990
+    },
+    {
+      "id": 1763920643704,
+      "fecha": "2025-11-23T17:57:23.704Z",
+      "cliente": {
+        "nombre": "thomas",
+        "apellido": "asdasdasdasd",
+        "correo": "admin@duoc.cl",
+        "telefono": "831280931290",
+        "direccion": "asjdljkasdjiasd",
+        "ciudad": "asdasdasdasd",
+        "region": "Los Lagos",
+        "metodo": "tarjeta",
+        "numeroTarjeta": "4345 3924 9234 8329",
+        "expiracion": "11/26",
+        "cvv": "123",
+        "nombreTarjeta": "djlasjdlkasjd"
+      },
+      "productos": [
+        {
+          "id": 1,
+          "qty": 6
+        }
+      ],
+      "total": 299940
     }
   ]
 }
